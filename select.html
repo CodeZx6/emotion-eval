@@ -68,13 +68,47 @@ h1 { font-size: 1.4em; margin-bottom: 4px; }
 
 <script>
 const BACKBONES = {
-  "candidates_matcha_dual":{label: "★ Matcha dual-space (RFAS+E2V)", dir: "audio/candidates_matcha_dual"},
+  "candidates_gradtts_dual":{label: "★ GradTTS dual-space (RFAS+E2V, α=80)", dir: "audio/candidates_gradtts_dual"},
+  "candidates_matcha_dual":{label: "Matcha dual-space (RFAS+E2V, α=50)", dir: "audio/candidates_matcha_dual"},
   "candidates":            {label: "F5-TTS balanced (s=0.05, α=10)", dir: "audio/candidates"},
   "candidates_f5_quality": {label: "F5-TTS quality (s=0.05, α=2)",  dir: "audio/candidates_f5_quality"},
   "candidates_f5_rfas":    {label: "F5-TTS latent-only (s=0.05, α=0)", dir: "audio/candidates_f5_rfas"},
 };
 
-let currentBB = "candidates_matcha_dual";
+let currentBB = "candidates_gradtts_dual";
+
+const TEXTS_GRADTTS = {
+  angry: [
+    {file:"0026.wav", utmos:4.15, spk:"0011", text:"What are you waiting for? man."},
+    {file:"0034.wav", utmos:4.10, spk:"0012", text:"She has no place for hot peper ."},
+    {file:"0038.wav", utmos:4.03, spk:"0012", text:"And his heart wagged with joy like a lamb's tail."},
+    {file:"0014.wav", utmos:3.94, spk:"0011", text:"But things haven't change yet."},
+    {file:"0010.wav", utmos:3.93, spk:"0011", text:"She'll be feverish after so much thinking."},
+    {file:"0013.wav", utmos:3.92, spk:"0011", text:"Another one, ten thousand dollars."},
+    {file:"0003.wav", utmos:3.88, spk:"0011", text:"And she caught at the brooch."},
+    {file:"0042.wav", utmos:3.69, spk:"0012", text:"You gain for nothing girl!"},
+    {file:"0015.wav", utmos:3.43, spk:"0011", text:"Over them swooped the eagles."},
+    {file:"0029.wav", utmos:3.34, spk:"0011", text:"Do you have anything in mind?"},
+  ],
+  happy: [
+    {file:"0034.wav", utmos:4.25, spk:"0012", text:"She has no place for hot peper ."},
+    {file:"0001.wav", utmos:4.16, spk:"0011", text:"A special pot too."},
+    {file:"0048.wav", utmos:4.04, spk:"0012", text:"And be with you,Tom!"},
+    {file:"0008.wav", utmos:3.79, spk:"0011", text:"And his heart wagged with joy like a lamb's tail."},
+    {file:"0044.wav", utmos:3.74, spk:"0012", text:"But things haven't change yet."},
+    {file:"0003.wav", utmos:3.70, spk:"0011", text:"And she caught at the brooch."},
+    {file:"0039.wav", utmos:3.68, spk:"0012", text:"She keeps saying I'm hers."},
+    {file:"0028.wav", utmos:3.60, spk:"0011", text:"What do you think of this question?"},
+    {file:"0032.wav", utmos:3.51, spk:"0012", text:"Why did I wake up!"},
+    {file:"0022.wav", utmos:3.22, spk:"0011", text:"And what does it mean?"},
+  ],
+  sad: [
+    {file:"0044.wav", utmos:3.83, spk:"0012", text:"But things haven't change yet."},
+    {file:"0015.wav", utmos:3.82, spk:"0011", text:"Over them swooped the eagles."},
+    {file:"0017.wav", utmos:3.59, spk:"0011", text:"Paul's teeth ached because of lemon."},
+    {file:"0007.wav", utmos:3.51, spk:"0011", text:"It would be a hard choice."},
+  ],
+};
 
 const TEXTS_MATCHA = {
   angry: [
@@ -185,7 +219,7 @@ function render() {
   const container = document.getElementById("content");
   container.innerHTML = "";
 
-  const curTexts = currentBB.startsWith("candidates_matcha") ? TEXTS_MATCHA : TEXTS_F5;
+  const curTexts = currentBB.startsWith("candidates_gradtts") ? TEXTS_GRADTTS : currentBB.startsWith("candidates_matcha") ? TEXTS_MATCHA : TEXTS_F5;
 
   for (const emo of ["angry", "happy", "sad"]) {
     const items = curTexts[emo] || [];
@@ -233,7 +267,7 @@ function updateCount() {
 }
 
 function exportSelection() {
-  const curTexts = currentBB.startsWith("candidates_matcha") ? TEXTS_MATCHA : TEXTS_F5;
+  const curTexts = currentBB.startsWith("candidates_gradtts") ? TEXTS_GRADTTS : currentBB.startsWith("candidates_matcha") ? TEXTS_MATCHA : TEXTS_F5;
   const result = { backbone: BACKBONES[currentBB].label };
   for (const emo of ["angry","happy","sad"]) {
     result[emo] = [...selected[emo]].sort().map(i => {
