@@ -68,14 +68,53 @@ h1 { font-size: 1.4em; margin-bottom: 4px; }
 
 <script>
 const BACKBONES = {
-  "candidates_gradtts_dual":{label: "★ GradTTS dual-space (RFAS+E2V, α=80)", dir: "audio/candidates_gradtts_dual"},
-  "candidates_matcha_dual":{label: "Matcha dual-space (RFAS+E2V, α=50)", dir: "audio/candidates_matcha_dual"},
-  "candidates":            {label: "F5-TTS balanced (s=0.05, α=10)", dir: "audio/candidates"},
-  "candidates_f5_quality": {label: "F5-TTS quality (s=0.05, α=2)",  dir: "audio/candidates_f5_quality"},
-  "candidates_f5_rfas":    {label: "F5-TTS latent-only (s=0.05, α=0)", dir: "audio/candidates_f5_rfas"},
+  "candidates_f5_emoref":  {label: "★ F5-TTS emo-ref + steering", dir: "audio/candidates_f5_emoref"},
+  "candidates_gradtts_dual":{label: "GradTTS dual-space (α=80)", dir: "audio/candidates_gradtts_dual"},
+  "candidates_matcha_dual":{label: "Matcha dual-space (α=50)", dir: "audio/candidates_matcha_dual"},
+  "candidates":            {label: "F5-TTS neutral-ref balanced (α=10)", dir: "audio/candidates"},
+  "candidates_f5_quality": {label: "F5-TTS neutral-ref quality (α=2)",  dir: "audio/candidates_f5_quality"},
 };
 
-let currentBB = "candidates_gradtts_dual";
+let currentBB = "candidates_f5_emoref";
+
+const TEXTS_F5_EMOREF = {
+  angry: [
+    {file:"0033.wav", utmos:3.01, spk:"0012", text:"And she caught at the brooch."},
+    {file:"0025.wav", utmos:2.89, spk:"0011", text:"I am going back to back home."},
+    {file:"0034.wav", utmos:2.76, spk:"0012", text:"She has no place for hot peper ."},
+    {file:"0006.wav", utmos:2.72, spk:"0011", text:"It's part of my secret."},
+    {file:"0043.wav", utmos:2.49, spk:"0012", text:"Another one, ten thousand dollars."},
+    {file:"0007.wav", utmos:2.34, spk:"0011", text:"It would be a hard choice."},
+    {file:"0030.wav", utmos:2.33, spk:"0012", text:"Called out the cloud."},
+    {file:"0045.wav", utmos:2.29, spk:"0012", text:"Over them swooped the eagles."},
+    {file:"0041.wav", utmos:1.78, spk:"0012", text:"where are you going?"},
+    {file:"0047.wav", utmos:1.71, spk:"0012", text:"Paul's teeth ached because of lemon."},
+  ],
+  happy: [
+    {file:"0038.wav", utmos:3.60, spk:"0012", text:"And his heart wagged with joy like a lamb's tail."},
+    {file:"0006.wav", utmos:3.04, spk:"0011", text:"It's part of my secret."},
+    {file:"0001.wav", utmos:3.00, spk:"0011", text:"A special pot too."},
+    {file:"0019.wav", utmos:2.93, spk:"0011", text:"So Tom saw night as it were broad daylight."},
+    {file:"0004.wav", utmos:2.85, spk:"0011", text:"She has no place for hot peper ."},
+    {file:"0033.wav", utmos:2.70, spk:"0012", text:"And she caught at the brooch."},
+    {file:"0043.wav", utmos:2.57, spk:"0012", text:"Another one, ten thousand dollars."},
+    {file:"0025.wav", utmos:2.51, spk:"0011", text:"I am going back to back home."},
+    {file:"0024.wav", utmos:2.41, spk:"0011", text:"A whirring noise was heard."},
+    {file:"0015.wav", utmos:2.25, spk:"0011", text:"Over them swooped the eagles."},
+  ],
+  sad: [
+    {file:"0010.wav", utmos:3.58, spk:"0011", text:"She'll be feverish after so much thinking."},
+    {file:"0013.wav", utmos:3.40, spk:"0011", text:"Another one, ten thousand dollars."},
+    {file:"0024.wav", utmos:3.39, spk:"0011", text:"A whirring noise was heard."},
+    {file:"0005.wav", utmos:3.38, spk:"0011", text:"They are made of wood."},
+    {file:"0007.wav", utmos:3.37, spk:"0011", text:"It would be a hard choice."},
+    {file:"0008.wav", utmos:3.34, spk:"0011", text:"And his heart wagged with joy like a lamb's tail."},
+    {file:"0022.wav", utmos:3.29, spk:"0011", text:"And what does it mean?"},
+    {file:"0036.wav", utmos:3.29, spk:"0012", text:"It's part of my secret."},
+    {file:"0045.wav", utmos:3.25, spk:"0012", text:"Over them swooped the eagles."},
+    {file:"0027.wav", utmos:3.11, spk:"0011", text:"Dear customer,welcome to our ship."},
+  ],
+};
 
 const TEXTS_GRADTTS = {
   angry: [
@@ -219,7 +258,7 @@ function render() {
   const container = document.getElementById("content");
   container.innerHTML = "";
 
-  const curTexts = currentBB.startsWith("candidates_gradtts") ? TEXTS_GRADTTS : currentBB.startsWith("candidates_matcha") ? TEXTS_MATCHA : TEXTS_F5;
+  const curTexts = currentBB === "candidates_f5_emoref" ? TEXTS_F5_EMOREF : currentBB.startsWith("candidates_gradtts") ? TEXTS_GRADTTS : currentBB.startsWith("candidates_matcha") ? TEXTS_MATCHA : TEXTS_F5;
 
   for (const emo of ["angry", "happy", "sad"]) {
     const items = curTexts[emo] || [];
@@ -267,7 +306,7 @@ function updateCount() {
 }
 
 function exportSelection() {
-  const curTexts = currentBB.startsWith("candidates_gradtts") ? TEXTS_GRADTTS : currentBB.startsWith("candidates_matcha") ? TEXTS_MATCHA : TEXTS_F5;
+  const curTexts = currentBB === "candidates_f5_emoref" ? TEXTS_F5_EMOREF : currentBB.startsWith("candidates_gradtts") ? TEXTS_GRADTTS : currentBB.startsWith("candidates_matcha") ? TEXTS_MATCHA : TEXTS_F5;
   const result = { backbone: BACKBONES[currentBB].label };
   for (const emo of ["angry","happy","sad"]) {
     result[emo] = [...selected[emo]].sort().map(i => {
