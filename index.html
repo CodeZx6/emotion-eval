@@ -98,17 +98,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
   <div class="instructions">
     <ol>
       <li><b>请佩戴耳机</b>，在安静环境中进行评测。</li>
-      <li>每页会播放一段语音，请从三个维度评分：
+      <li>每页会播放一段语音，请从两个维度评分：
         <ul>
           <li><b>自然度 (nMOS)</b>：语音听起来是否自然、流畅？</li>
           <li><b>情绪表现 (eMOS)</b>：语音的情绪是否与目标情绪匹配？</li>
-          <li><b>说话人相似度 (sMOS)</b>：与参考音频相比，说话人是否一致？</li>
         </ul>
       </li>
       <li>评分范围 1.0 - 5.0（0.5 递增），1=最差，5=最好。</li>
       <li>每段语音请<b>至少听一遍</b>再评分。</li>
       <li>评测进度会自动保存，关闭页面后可继续。</li>
-      <li>预计用时约 <b>30-40 分钟</b>。</li>
+      <li>预计用时约 <b>8-10 分钟</b>。</li>
     </ol>
   </div>
   <input type="text" id="evalId" placeholder="请输入您的评测者 ID（如姓名首字母+数字）">
@@ -131,11 +130,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
       <audio id="targetAudio" controls preload="auto"></audio>
     </div>
 
-    <div class="audio-section">
-      <label>▶ 参考音频（用于说话人相似度对比）</label>
-      <audio id="refAudio" controls preload="auto"></audio>
-    </div>
-
     <!-- nMOS -->
     <div class="rating-section">
       <h3>自然度 (nMOS)</h3>
@@ -154,14 +148,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
       <div class="warn" id="emos-warn">请选择评分</div>
     </div>
 
-    <!-- sMOS -->
-    <div class="rating-section">
-      <h3>说话人相似度 (sMOS)</h3>
-      <div class="rating-desc">与<b>参考音频</b>相比，说话人的声音是否一致？</div>
-      <div class="rating-row" id="smos-row"></div>
-      <div class="rating-labels"><span>1 = 完全不同</span><span>5 = 完全一致</span></div>
-      <div class="warn" id="smos-warn">请选择评分</div>
-    </div>
   </div>
 
   <div class="nav-row">
@@ -232,7 +218,7 @@ const GOOGLE_SHEET_URL = "";
 let evaluatorId = "";
 let trialOrder = [];    // [{system, emotion, sampleId}, ...]
 let currentIdx = 0;
-let ratings = {};       // { "idx": {nmos, emos, smos} }
+let ratings = {};       // { "idx": {nmos, emos} }
 
 // ══════════════════════════════════════════════════════
 // INIT
@@ -313,16 +299,13 @@ function showTrial(idx) {
   // Audio
   document.getElementById("targetAudio").src =
     `${AUDIO_BASE}/${trial.system}/${trial.emotion}/${trial.sampleId}.wav`;
-  document.getElementById("refAudio").src =
-    `${AUDIO_BASE}/${REF_DIR}/${trial.emotion}/${trial.sampleId}.wav`;
 
   // Restore ratings if exist
   buildRatingButtons("nmos-row", "nmos");
   buildRatingButtons("emos-row", "emos");
-  buildRatingButtons("smos-row", "smos");
 
   if (ratings[idx]) {
-    for (const key of ["nmos", "emos", "smos"]) {
+    for (const key of ["nmos", "emos"]) {
       if (ratings[idx][key] != null) {
         const row = document.getElementById(key + "-row");
         for (const b of row.children) {
@@ -333,7 +316,7 @@ function showTrial(idx) {
   }
 
   // Hide warnings
-  for (const k of ["nmos", "emos", "smos"]) {
+  for (const k of ["nmos", "emos"]) {
     document.getElementById(k + "-warn").style.display = "none";
   }
 
@@ -349,7 +332,7 @@ function navigate(delta) {
   if (delta > 0) {
     // Validate current ratings
     let valid = true;
-    for (const key of ["nmos", "emos", "smos"]) {
+    for (const key of ["nmos", "emos"]) {
       if (!ratings[currentIdx] || ratings[currentIdx][key] == null) {
         document.getElementById(key + "-warn").style.display = "block";
         valid = false;
@@ -431,7 +414,6 @@ function buildResultsPayload() {
       sample_id: trial.sampleId,
       nmos: ratings[idx]?.nmos ?? null,
       emos: ratings[idx]?.emos ?? null,
-      smos: ratings[idx]?.smos ?? null,
     })),
   };
 }
