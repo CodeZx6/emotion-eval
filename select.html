@@ -68,14 +68,46 @@ h1 { font-size: 1.4em; margin-bottom: 4px; }
 
 <script>
 const BACKBONES = {
+  "candidates_matcha_dual":{label: "★ Matcha dual-space (RFAS+E2V)", dir: "audio/candidates_matcha_dual"},
   "candidates":            {label: "F5-TTS balanced (s=0.05, α=10)", dir: "audio/candidates"},
   "candidates_f5_quality": {label: "F5-TTS quality (s=0.05, α=2)",  dir: "audio/candidates_f5_quality"},
   "candidates_f5_rfas":    {label: "F5-TTS latent-only (s=0.05, α=0)", dir: "audio/candidates_f5_rfas"},
 };
 
-let currentBB = "candidates";
+let currentBB = "candidates_matcha_dual";
 
-const TEXTS = {
+const TEXTS_MATCHA = {
+  angry: [
+    {file:"0043.wav", utmos:4.48, spk:"0012", text:"Another one, ten thousand dollars."},
+    {file:"0008.wav", utmos:4.47, spk:"0011", text:"And his heart wagged with joy like a lamb's tail."},
+    {file:"0012.wav", utmos:4.41, spk:"0011", text:"You gain for nothing girl!"},
+    {file:"0045.wav", utmos:4.31, spk:"0012", text:"Over them swooped the eagles."},
+    {file:"0016.wav", utmos:4.24, spk:"0011", text:"But mom I'm not certain about."},
+    {file:"0033.wav", utmos:4.20, spk:"0012", text:"And she caught at the brooch."},
+    {file:"0025.wav", utmos:4.19, spk:"0011", text:"I am going back to back home."},
+    {file:"0024.wav", utmos:3.62, spk:"0011", text:"A whirring noise was heard."},
+  ],
+  happy: [
+    {file:"0002.wav", utmos:4.40, spk:"0011", text:"Why did I wake up!"},
+    {file:"0001.wav", utmos:4.29, spk:"0011", text:"A special pot too."},
+    {file:"0033.wav", utmos:4.26, spk:"0012", text:"And she caught at the brooch."},
+    {file:"0020.wav", utmos:4.22, spk:"0011", text:"Enough,you foolish chatter."},
+    {file:"0022.wav", utmos:4.21, spk:"0011", text:"And what does it mean?"},
+    {file:"0016.wav", utmos:4.07, spk:"0011", text:"But mom I'm not certain about."},
+    {file:"0029.wav", utmos:4.05, spk:"0011", text:"Do you have anything in mind?"},
+    {file:"0035.wav", utmos:4.03, spk:"0012", text:"They are made of wood."},
+    {file:"0018.wav", utmos:4.02, spk:"0011", text:"And be with you,Tom!"},
+    {file:"0041.wav", utmos:3.76, spk:"0012", text:"where are you going?"},
+  ],
+  sad: [
+    {file:"0044.wav", utmos:4.35, spk:"0012", text:"But things haven't change yet."},
+    {file:"0007.wav", utmos:4.34, spk:"0011", text:"It would be a hard choice."},
+    {file:"0031.wav", utmos:4.33, spk:"0012", text:"A special pot too."},
+    {file:"0036.wav", utmos:4.31, spk:"0012", text:"It's part of my secret."},
+  ],
+};
+
+const TEXTS_F5 = {
   angry: [
     {file:"0137.wav", utmos:4.14, spk:"0015", text:"Paul's teeth ached because of lemon."},
     {file:"0223.wav", utmos:4.02, spk:"0018", text:"Another one, ten thousand dollars."},
@@ -153,16 +185,19 @@ function render() {
   const container = document.getElementById("content");
   container.innerHTML = "";
 
+  const curTexts = currentBB.startsWith("candidates_matcha") ? TEXTS_MATCHA : TEXTS_F5;
+
   for (const emo of ["angry", "happy", "sad"]) {
+    const items = curTexts[emo] || [];
     const section = document.createElement("div");
     section.className = "emotion-section";
 
     const header = document.createElement("div");
     header.className = `emotion-header emotion-${emo}`;
-    header.innerHTML = `<span>${emo.toUpperCase()}</span><span>${selected[emo].size}/${MAX}</span>`;
+    header.innerHTML = `<span>${emo.toUpperCase()} (${items.length} candidates)</span><span>${selected[emo].size}/${MAX}</span>`;
     section.appendChild(header);
 
-    TEXTS[emo].forEach((item, idx) => {
+    items.forEach((item, idx) => {
       const row = document.createElement("div");
       row.className = `sample-row ${selected[emo].has(idx) ? "selected" : ""}`;
       row.onclick = (e) => { if (e.target.tagName !== "AUDIO") toggle(emo, idx); };
@@ -198,10 +233,11 @@ function updateCount() {
 }
 
 function exportSelection() {
+  const curTexts = currentBB.startsWith("candidates_matcha") ? TEXTS_MATCHA : TEXTS_F5;
   const result = { backbone: BACKBONES[currentBB].label };
   for (const emo of ["angry","happy","sad"]) {
     result[emo] = [...selected[emo]].sort().map(i => {
-      const t = TEXTS[emo][i];
+      const t = curTexts[emo][i];
       return { rank: i+1, file: t.file, text: t.text, spk: t.spk };
     });
   }
