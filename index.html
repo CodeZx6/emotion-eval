@@ -179,12 +179,10 @@ const AUDIO_BASE = "audio";
 
 // Systems to evaluate (directory names under AUDIO_BASE)
 const SYSTEMS = [
-  { id: "gt",         label: "System A" },
-  { id: "ours",       label: "System B" },
-  { id: "qwen3tts",   label: "System C" },
-  { id: "cosyvoice2", label: "System D" },
-  { id: "emoknob",    label: "System E" },
-  { id: "baseline",   label: "System F" },
+  { id: "ours",       label: "System A" },
+  { id: "qwen3tts",   label: "System B" },
+  { id: "cosyvoice2", label: "System C" },
+  { id: "emoknob",    label: "System D" },
 ];
 
 // Emotions
@@ -202,10 +200,6 @@ for (const emo of EMOTIONS) {
     SAMPLE_IDS[emo].push(String(i).padStart(3, "0"));
   }
 }
-
-// Reference audio path pattern (for sMOS)
-// Format: audio/reference/{emotion}/{sample_id}.wav
-const REF_DIR = "reference";
 
 // Google Sheets backend URL (see SETUP.md for how to create)
 // Leave empty to disable auto-submit (will only offer JSON download)
