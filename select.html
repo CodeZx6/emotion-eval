@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sample Selection - 人工挑选</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+       background: #f5f5f5; color: #333; line-height: 1.6; padding: 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { font-size: 1.4em; margin-bottom: 8px; }
+.desc { color: #666; font-size: 0.9em; margin-bottom: 20px; }
+
+.emotion-section { margin-bottom: 32px; }
+.emotion-header { font-size: 1.2em; font-weight: 600; padding: 8px 16px;
+                  border-radius: 8px; margin-bottom: 12px; color: #fff; }
+.emotion-angry { background: #c0392b; }
+.emotion-happy { background: #d4a017; }
+.emotion-sad   { background: #2874a6; }
+
+.sample-card { background: #fff; border-radius: 8px; padding: 14px 16px;
+               margin-bottom: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+               display: flex; align-items: center; gap: 12px;
+               border: 2px solid transparent; transition: all 0.2s; cursor: pointer; }
+.sample-card:hover { border-color: #ddd; }
+.sample-card.selected { border-color: #27ae60; background: #f0faf3; }
+.sample-card.selected .select-badge { display: inline-block; }
+
+.select-badge { display: none; background: #27ae60; color: #fff; font-size: 0.7em;
+                padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+
+.card-num { font-size: 0.85em; color: #aaa; min-width: 24px; text-align: center; }
+.card-info { flex: 1; }
+.card-text { font-size: 0.9em; color: #555; }
+.card-meta { font-size: 0.75em; color: #aaa; margin-top: 2px; }
+.card-audio { min-width: 260px; }
+.card-audio audio { width: 100%; height: 36px; }
+
+.counter { position: fixed; bottom: 20px; right: 20px; background: #333; color: #fff;
+           padding: 12px 20px; border-radius: 12px; font-size: 0.9em;
+           box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 100; }
+.counter .num { font-weight: 700; color: #4aee88; }
+
+.export-btn { position: fixed; bottom: 20px; left: 20px; background: #27ae60; color: #fff;
+              padding: 12px 24px; border-radius: 12px; border: none; font-size: 1em;
+              cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 100; }
+.export-btn:hover { background: #219a52; }
+.export-btn:disabled { background: #aaa; cursor: not-allowed; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Ours 样本挑选</h1>
+  <p class="desc">每个情绪选 <b>3 条</b>你觉得情绪最明显且自然的。点击卡片选中/取消。选完后点左下角导出。</p>
+  <div id="content"></div>
+</div>
+
+<div class="counter" id="counter">已选: <span class="num" id="countText">0/9</span></div>
+<button class="export-btn" id="exportBtn" onclick="exportSelection()" disabled>导出选择 (JSON)</button>
+
+<script>
+const BASE = "audio/candidates";
+
+const CANDIDATES = {
+  angry: [
+    {file:"0137.wav", utmos:4.14, spk:"0015", text:"Paul's teeth ached because of lemon."},
+    {file:"0223.wav", utmos:4.02, spk:"0018", text:"Another one, ten thousand dollars."},
+    {file:"0135.wav", utmos:3.81, spk:"0015", text:"Over them swooped the eagles."},
+    {file:"0271.wav", utmos:3.66, spk:"0020", text:"A special pot too."},
+    {file:"0157.wav", utmos:3.57, spk:"0016", text:"It would be a hard choice."},
+    {file:"0130.wav", utmos:3.54, spk:"0015", text:"She'll be feverish after so much thinking."},
+    {file:"0149.wav", utmos:3.50, spk:"0015", text:"Do you have anything in mind?"},
+    {file:"0169.wav", utmos:3.50, spk:"0016", text:"So Tom saw night as it were broad daylight."},
+    {file:"0218.wav", utmos:3.41, spk:"0018", text:"And his heart wagged with joy like a lamb's tail."},
+    {file:"0140.wav", utmos:3.39, spk:"0015", text:"Enough,you foolish chatter."},
+    {file:"0094.wav", utmos:3.33, spk:"0014", text:"She has no place for hot peper ."},
+    {file:"0210.wav", utmos:3.35, spk:"0018", text:"Called out the cloud."},
+    {file:"0134.wav", utmos:3.20, spk:"0015", text:"But things haven't change yet."},
+    {file:"0153.wav", utmos:3.20, spk:"0016", text:"And she caught at the brooch."},
+    {file:"0088.wav", utmos:3.18, spk:"0013", text:"What do you think of this question?"},
+  ],
+  happy: [
+    {file:"0213.wav", utmos:4.18, spk:"0018", text:"And she caught at the brooch."},
+    {file:"0141.wav", utmos:4.01, spk:"0015", text:"Why should I purchase my own?"},
+    {file:"0236.wav", utmos:3.99, spk:"0018", text:"What are you waiting for? man."},
+    {file:"0218.wav", utmos:3.95, spk:"0018", text:"And his heart wagged with joy like a lamb's tail."},
+    {file:"0151.wav", utmos:3.92, spk:"0016", text:"A special pot too."},
+    {file:"0232.wav", utmos:3.84, spk:"0018", text:"And what does it mean?"},
+    {file:"0224.wav", utmos:3.78, spk:"0018", text:"But things haven't change yet."},
+    {file:"0133.wav", utmos:3.71, spk:"0015", text:"Another one, ten thousand dollars."},
+    {file:"0177.wav", utmos:3.71, spk:"0016", text:"Dear customer,welcome to our ship."},
+    {file:"0143.wav", utmos:3.59, spk:"0015", text:"Lucy, a clever farmer."},
+    {file:"0246.wav", utmos:3.54, spk:"0019", text:"It's part of my secret."},
+    {file:"0227.wav", utmos:3.35, spk:"0018", text:"Paul's teeth ached because of lemon."},
+    {file:"0160.wav", utmos:3.34, spk:"0016", text:"She'll be feverish after so much thinking."},
+    {file:"0189.wav", utmos:3.16, spk:"0017", text:"She keeps saying I'm hers."},
+    {file:"0247.wav", utmos:3.15, spk:"0019", text:"It would be a hard choice."},
+  ],
+  sad: [
+    {file:"0227.wav", utmos:4.12, spk:"0018", text:"Paul's teeth ached because of lemon."},
+    {file:"0134.wav", utmos:4.02, spk:"0015", text:"But things haven't change yet."},
+    {file:"0233.wav", utmos:4.01, spk:"0018", text:"Lucy, a clever farmer."},
+    {file:"0213.wav", utmos:4.00, spk:"0018", text:"And she caught at the brooch."},
+    {file:"0232.wav", utmos:3.86, spk:"0018", text:"And what does it mean?"},
+    {file:"0144.wav", utmos:3.85, spk:"0015", text:"A whirring noise was heard."},
+    {file:"0121.wav", utmos:3.83, spk:"0015", text:"A special pot too."},
+    {file:"0215.wav", utmos:3.78, spk:"0018", text:"They are made of wood."},
+    {file:"0246.wav", utmos:3.72, spk:"0019", text:"It's part of my secret."},
+    {file:"0237.wav", utmos:3.68, spk:"0018", text:"Dear customer,welcome to our ship."},
+    {file:"0128.wav", utmos:3.66, spk:"0015", text:"And his heart wagged with joy like a lamb's tail."},
+    {file:"0135.wav", utmos:3.60, spk:"0015", text:"Over them swooped the eagles."},
+    {file:"0138.wav", utmos:3.57, spk:"0015", text:"And be with you,Tom!"},
+    {file:"0175.wav", utmos:3.56, spk:"0016", text:"I am going back to back home."},
+    {file:"0230.wav", utmos:3.53, spk:"0018", text:"Enough,you foolish chatter."},
+  ],
+};
+
+const MAX_PER_EMO = 3;
+const selected = { angry: new Set(), happy: new Set(), sad: new Set() };
+
+function render() {
+  const container = document.getElementById("content");
+  container.innerHTML = "";
+
+  for (const [emo, items] of Object.entries(CANDIDATES)) {
+    const section = document.createElement("div");
+    section.className = "emotion-section";
+
+    const header = document.createElement("div");
+    header.className = `emotion-header emotion-${emo}`;
+    header.textContent = `${emo.toUpperCase()} (${selected[emo].size}/${MAX_PER_EMO} selected)`;
+    section.appendChild(header);
+
+    items.forEach((item, idx) => {
+      const card = document.createElement("div");
+      card.className = `sample-card ${selected[emo].has(idx) ? "selected" : ""}`;
+      card.onclick = (e) => {
+        if (e.target.tagName === "AUDIO") return;
+        toggleSelect(emo, idx);
+      };
+
+      card.innerHTML = `
+        <div class="card-num">${idx + 1}</div>
+        <div class="card-info">
+          <div class="card-text">"${item.text}" <span class="select-badge">SELECTED</span></div>
+          <div class="card-meta">UTMOS: ${item.utmos} | Speaker: ${item.spk} | ${item.file}</div>
+        </div>
+        <div class="card-audio">
+          <audio controls preload="none" src="${BASE}/${emo}/${item.file}"></audio>
+        </div>
+      `;
+      section.appendChild(card);
+    });
+
+    container.appendChild(section);
+  }
+  updateCounter();
+}
+
+function toggleSelect(emo, idx) {
+  if (selected[emo].has(idx)) {
+    selected[emo].delete(idx);
+  } else if (selected[emo].size < MAX_PER_EMO) {
+    selected[emo].add(idx);
+  } else {
+    alert(`${emo} 已选满 ${MAX_PER_EMO} 条，请先取消一条`);
+    return;
+  }
+  render();
+}
+
+function updateCounter() {
+  const total = selected.angry.size + selected.happy.size + selected.sad.size;
+  document.getElementById("countText").textContent = `${total}/9`;
+  document.getElementById("exportBtn").disabled = total < 9;
+}
+
+function exportSelection() {
+  const result = {};
+  for (const [emo, idxSet] of Object.entries(selected)) {
+    result[emo] = [...idxSet].sort().map(idx => {
+      const item = CANDIDATES[emo][idx];
+      return { rank: idx + 1, file: item.file, text: item.text, spk: item.spk, utmos: item.utmos };
+    });
+  }
+
+  const blob = new Blob([JSON.stringify(result, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "selected_samples.json";
+  a.click();
+  URL.revokeObjectURL(url);
+
+  // Also copy to clipboard
+  navigator.clipboard.writeText(JSON.stringify(result, null, 2)).then(() => {
+    alert("已下载并复制到剪贴板！\n请将 JSON 发给 Claude 更新评测网页。");
+  }).catch(() => {
+    alert("已下载！请将 JSON 文件内容发给 Claude。");
+  });
+}
+
+render();
+</script>
+</body>
+</html>
