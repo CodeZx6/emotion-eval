@@ -68,11 +68,9 @@ h1 { font-size: 1.4em; margin-bottom: 4px; }
 
 <script>
 const BACKBONES = {
-  "candidates":          {label: "F5-TTS balanced (α=10)", dir: "audio/candidates"},
-  "candidates_f5_quality": {label: "F5-TTS quality (α=2)", dir: "audio/candidates_f5_quality"},
-  "candidates_f5_rfas":  {label: "F5-TTS RFAS-only (α=0)", dir: "audio/candidates_f5_rfas"},
-  "candidates_gradtts_rfas": {label: "GradTTS RFAS", dir: "audio/candidates_gradtts_rfas"},
-  "candidates_matcha":   {label: "Matcha per-emo", dir: "audio/candidates_matcha"},
+  "candidates":            {label: "F5-TTS balanced (s=0.05, α=10)", dir: "audio/candidates"},
+  "candidates_f5_quality": {label: "F5-TTS quality (s=0.05, α=2)",  dir: "audio/candidates_f5_quality"},
+  "candidates_f5_rfas":    {label: "F5-TTS latent-only (s=0.05, α=0)", dir: "audio/candidates_f5_rfas"},
 };
 
 let currentBB = "candidates";
