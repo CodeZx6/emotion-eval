@@ -213,6 +213,7 @@ let evaluatorId = "";
 let trialOrder = [];    // [{system, emotion, sampleId}, ...]
 let currentIdx = 0;
 let ratings = {};       // { "idx": {nmos, emos} }
+let trialMeta = {};     // { "idx": {startTime, playCount, duration_sec} }
 
 // ══════════════════════════════════════════════════════
 // INIT
@@ -291,8 +292,16 @@ function showTrial(idx) {
   tag.className = `emotion-tag emotion-${trial.emotion}`;
 
   // Audio
-  document.getElementById("targetAudio").src =
-    `${AUDIO_BASE}/${trial.system}/${trial.emotion}/${trial.sampleId}.wav`;
+  const audioEl = document.getElementById("targetAudio");
+  audioEl.src = `${AUDIO_BASE}/${trial.system}/${trial.emotion}/${trial.sampleId}.wav`;
+
+  // Track play count and time
+  if (!trialMeta[idx]) {
+    trialMeta[idx] = { startTime: Date.now(), playCount: 0 };
+  } else {
+    trialMeta[idx].startTime = Date.now(); // reset on revisit
+  }
+  audioEl.onplay = () => { trialMeta[idx].playCount++; saveProgress(); };
 
   // Restore ratings if exist
   buildRatingButtons("nmos-row", "nmos");
@@ -323,6 +332,12 @@ function showTrial(idx) {
 }
 
 function navigate(delta) {
+  // Record time spent on current trial
+  if (trialMeta[currentIdx] && trialMeta[currentIdx].startTime) {
+    const elapsed = (Date.now() - trialMeta[currentIdx].startTime) / 1000;
+    trialMeta[currentIdx].duration_sec = (trialMeta[currentIdx].duration_sec || 0) + elapsed;
+  }
+
   if (delta > 0) {
     // Validate current ratings
     let valid = true;
@@ -354,7 +369,7 @@ function navigate(delta) {
 function storageKey() { return `eval_${evaluatorId}`; }
 
 function saveProgress() {
-  const data = { evaluatorId, currentIdx, ratings, timestamp: Date.now() };
+  const data = { evaluatorId, currentIdx, ratings, trialMeta, timestamp: Date.now() };
   localStorage.setItem(storageKey(), JSON.stringify(data));
 }
 
@@ -364,6 +379,7 @@ function loadProgress() {
   try {
     const data = JSON.parse(raw);
     ratings = data.ratings || {};
+    trialMeta = data.trialMeta || {};
     currentIdx = data.currentIdx || 0;
     return true;
   } catch { return false; }
@@ -408,6 +424,8 @@ function buildResultsPayload() {
       sample_id: trial.sampleId,
       nmos: ratings[idx]?.nmos ?? null,
       emos: ratings[idx]?.emos ?? null,
+      play_count: trialMeta[idx]?.playCount ?? 0,
+      duration_sec: Math.round(trialMeta[idx]?.duration_sec ?? 0),
     })),
   };
 }
