@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DUET: Representation Steering for Emotion Control in Speech Synthesis</title>
+<style>
+:root {
+    --accent: #2563eb;
+    --text: #1e293b;
+    --text-sec: #64748b;
+    --bg: #ffffff;
+    --bg-alt: #f8fafc;
+    --border: #e2e8f0;
+    --angry: #dc2626; --angry-bg: #fef2f2;
+    --happy: #ca8a04; --happy-bg: #fefce8;
+    --sad: #2563eb;   --sad-bg: #eff6ff;
+    --radius: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+       background: var(--bg-alt); color: var(--text); line-height: 1.7;
+       -webkit-font-smoothing: antialiased; }
+
+/* ── Hero ── */
+.hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+        color: #fff; padding: 56px 24px 48px; text-align: center; }
+.hero .method { font-size: 1.1em; color: #93c5fd; font-weight: 600; margin-bottom: 6px; }
+.hero h1 { font-size: 2em; font-weight: 700; letter-spacing: -0.02em;
+           max-width: 720px; margin: 0 auto 6px; }
+.hero .authors { font-size: 0.92em; color: #94a3b8; margin-bottom: 20px; }
+.hero .links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.hero .links a { display: inline-flex; align-items: center; gap: 6px;
+                 padding: 8px 18px; border-radius: 20px; font-size: 0.88em;
+                 font-weight: 600; text-decoration: none; transition: all 0.2s;
+                 background: rgba(255,255,255,0.12); color: #fff;
+                 border: 1px solid rgba(255,255,255,0.22); }
+.hero .links a:hover { background: rgba(255,255,255,0.22); }
+.hero .links a.primary { background: var(--accent); border-color: var(--accent); }
+.hero .links a.primary:hover { background: #1d4ed8; }
+
+/* ── Sections ── */
+section { background: var(--bg); border-radius: 12px; padding: 36px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.03);
+          margin: 20px auto; max-width: 1100px; }
+section h2 { font-size: 1.3em; font-weight: 700; margin-bottom: 16px;
+             display: flex; align-items: center; gap: 10px; }
+section h2::before { content: ''; width: 4px; height: 24px; background: var(--accent);
+                     border-radius: 2px; flex-shrink: 0; }
+
+/* ── Abstract ── */
+.abstract { border-left: 3px solid var(--accent); padding-left: 20px;
+            color: var(--text-sec); font-size: 0.93em; line-height: 1.8; }
+
+/* ── Video ── */
+.emo-section { margin: 28px 0 0; }
+.emo-label { display: inline-block; padding: 4px 14px; border-radius: 16px;
+             font-size: 0.88em; font-weight: 700; margin-bottom: 12px; }
+.emo-label-angry { background: var(--angry-bg); color: var(--angry); }
+.emo-label-happy { background: var(--happy-bg); color: var(--happy); }
+.emo-label-sad   { background: var(--sad-bg); color: var(--sad); }
+.video-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.video-card { background: var(--bg-alt); border-radius: var(--radius); overflow: hidden;
+              border: 1px solid var(--border); transition: box-shadow 0.2s; }
+.video-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.video-card video { width: 100%; display: block; }
+.video-card .meta { padding: 8px 14px; font-size: 0.82em; color: var(--text-sec); }
+
+/* ── Footer ── */
+footer { text-align: center; padding: 36px 20px; color: var(--text-sec); font-size: 0.82em; }
+
+@media (max-width: 900px) {
+    .video-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+    .hero h1 { font-size: 1.4em; }
+    section { padding: 24px; margin: 12px 16px; }
+    .video-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+    <div class="method">DUET</div>
+    <h1>Representation Steering for Emotion Control in Speech Synthesis</h1>
+    <p class="authors">Anonymous Authors &mdash; NeurIPS 2026 Submission</p>
+    <div class="links">
+        <a href="#">Paper (PDF)</a>
+        <a href="#robot-demo" class="primary">Robot Demo</a>
+    </div>
+</div>
+
+<section id="abstract">
+    <h2>Abstract</h2>
+    <p class="abstract">
+        Text-to-speech (TTS) models have achieved human level naturalness, particularly in diffusion and flow-matching models whose iterative denoising captures the high dimensional, richly detailed distribution of speech. However, existing methods for emotion control still rely on supervised retraining on emotional speech corpora with fixed emotion classes, because emotional cues are subtle, correlate with speaker identity, and diverge across architectures. We discover that emotion is linearly decodable from pretrained TTS hidden states and nearly orthogonal to speaker identity, despite no emotion supervision. Building on this, we introduce DUET, a plug-and-play dual space framework for emotion control in frozen TTS models. DUET applies two complementary interventions at each denoising step, (i) steering the hidden state along a target emotion direction obtained by probing for the layer most discriminative of emotion, and (ii) guiding the clean estimate via a gradient backpropagated through a differentiable vocoder to refine spectral details that hidden state steering alone cannot reach. We evaluate DUET on 3 datasets across 5 TTS architectures, with quantitative results showing clear advantages over 10 baselines and the highest emotion appropriateness ratings in human evaluation. To further showcase its qualitative behavior, we deploy DUET on an Ameca humanoid robot, where it produces richly expressive emotional speech on real hardware, demonstrating the strong potential for plug-and-play affective interaction for embodied agents.
+    </p>
+</section>
+
+<section id="robot-demo">
+    <h2>Robot Deployment</h2>
+
+    <div class="emo-section">
+        <span class="emo-label emo-label-angry">Angry</span>
+        <div class="video-grid">
+            <div class="video-card">
+                <video controls preload="metadata" src="video/angry_1.mp4"></video>
+                <div class="meta">Clip 1</div>
+            </div>
+            <div class="video-card">
+                <video controls preload="metadata" src="video/angry_2.mp4"></video>
+                <div class="meta">Clip 2</div>
+            </div>
+            <div class="video-card">
+                <video controls preload="metadata" src="video/angry_3.mp4"></video>
+                <div class="meta">Clip 3</div>
+            </div>
+            <div class="video-card">
+                <video controls preload="metadata" src="video/angry_4.mp4"></video>
+                <div class="meta">Clip 4</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="emo-section">
+        <span class="emo-label emo-label-happy">Happy</span>
+        <div class="video-grid">
+            <div class="video-card">
+                <video controls preload="metadata" src="video/happy_1.mp4"></video>
+                <div class="meta">Clip 1</div>
+            </div>
+            <div class="video-card">
+                <video controls preload="metadata" src="video/happy_2.mp4"></video>
+                <div class="meta">Clip 2</div>
+            </div>
+            <div class="video-card">
+                <video controls preload="metadata" src="video/happy_3.mp4"></video>
+                <div class="meta">Clip 3</div>
+            </div>
+            <div class="video-card">
+                <video controls preload="metadata" src="video/happy_4.mp4"></video>
+                <div class="meta">Clip 4</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="emo-section">
+        <span class="emo-label emo-label-sad">Sad</span>
+        <div class="video-grid">
+            <div class="video-card">
+                <video controls preload="metadata" src="video/sad_1.mp4"></video>
+                <div class="meta">Clip 1</div>
+            </div>
+            <div class="video-card">
+                <video controls preload="metadata" src="video/sad_2.mp4"></video>
+                <div class="meta">Clip 2</div>
+            </div>
+            <div class="video-card">
+                <video controls preload="metadata" src="video/sad_3.mp4"></video>
+                <div class="meta">Clip 3</div>
+            </div>
+            <div class="video-card">
+                <video controls preload="metadata" src="video/sad_4.mp4"></video>
+                <div class="meta">Clip 4</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    Anonymous submission to NeurIPS 2026 &mdash; Under double-blind review
+</footer>
+
+</body>
+</html>
