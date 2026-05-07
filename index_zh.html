@@ -93,24 +93,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
 
 <!-- ════════ Landing ════════ -->
 <div id="landing">
-  <h1>Emotional Speech Listening Test</h1>
-  <p>Thank you for participating in this listening test. Please read the instructions below carefully.</p>
+  <h1>语音情绪评测</h1>
+  <p>感谢您参加本次评测！请仔细阅读以下说明。</p>
   <div class="instructions">
     <ol>
-      <li><b>Please wear headphones</b> and complete the test in a quiet environment.</li>
-      <li>Each page plays one audio clip. Please rate it on two dimensions:
+      <li><b>请佩戴耳机</b>，在安静环境中进行评测。</li>
+      <li>每页会播放一段语音，请从两个维度评分：
         <ul>
-          <li><b>Naturalness (nMOS)</b>: Does the speech sound natural and fluent?</li>
-          <li><b>Emotional appropriateness (eMOS)</b>: Does the speech convey the target emotion?</li>
+          <li><b>自然度 (nMOS)</b>：语音听起来是否自然、流畅？</li>
+          <li><b>情绪表现 (eMOS)</b>：语音的情绪是否与目标情绪匹配？</li>
         </ul>
       </li>
-      <li>The rating scale is 1.0&ndash;5.0 in 0.5 increments, where 1 = worst and 5 = best.</li>
-      <li>Please listen to each clip <b>at least once</b> before rating.</li>
-      <li>Progress is saved automatically; you may close the page and resume later.</li>
+      <li>评分范围 1.0 - 5.0（0.5 递增），1=最差，5=最好。</li>
+      <li>每段语音请<b>至少听一遍</b>再评分。</li>
+      <li>评测进度会自动保存，关闭页面后可继续。</li>
     </ol>
   </div>
-  <input type="text" id="evalId" placeholder="Enter your name (in English)">
-  <button onclick="startEval()">Start</button>
+  <input type="text" id="evalId" placeholder="请输入您的英文名">
+  <button onclick="startEval()">开始评测</button>
 </div>
 
 <!-- ════════ Eval ════════ -->
@@ -125,44 +125,44 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
     </div>
 
     <div class="audio-section" style="margin-top:14px;">
-      <label>&#9654; Audio to evaluate</label>
+      <label>▶ 待评测语音</label>
       <audio id="targetAudio" controls preload="auto"></audio>
     </div>
 
     <!-- nMOS -->
     <div class="rating-section">
-      <h3>Naturalness (nMOS)</h3>
-      <div class="rating-desc">Does the speech sound natural and fluent, without noticeable robotic artifacts or distortion?</div>
+      <h3>自然度 (nMOS)</h3>
+      <div class="rating-desc">语音是否自然、流畅、没有明显的机器感或失真？</div>
       <div class="rating-row" id="nmos-row"></div>
-      <div class="rating-labels"><span>1 = very unnatural</span><span>5 = fully natural</span></div>
-      <div class="warn" id="nmos-warn">Please select a rating</div>
+      <div class="rating-labels"><span>1 = 非常不自然</span><span>5 = 完全自然</span></div>
+      <div class="warn" id="nmos-warn">请选择评分</div>
     </div>
 
     <!-- eMOS -->
     <div class="rating-section">
-      <h3>Emotional appropriateness (eMOS)</h3>
-      <div class="rating-desc">Does the emotion in the speech match the <b>target emotion</b> labelled above?</div>
+      <h3>情绪表现 (eMOS)</h3>
+      <div class="rating-desc">语音的情绪是否与上方标注的<b>目标情绪</b>匹配？</div>
       <div class="rating-row" id="emos-row"></div>
-      <div class="rating-labels"><span>1 = completely mismatched</span><span>5 = perfectly matched</span></div>
-      <div class="warn" id="emos-warn">Please select a rating</div>
+      <div class="rating-labels"><span>1 = 完全不匹配</span><span>5 = 完美匹配</span></div>
+      <div class="warn" id="emos-warn">请选择评分</div>
     </div>
 
   </div>
 
   <div class="nav-row">
-    <button class="nav-btn nav-prev" onclick="navigate(-1)">&larr; Previous</button>
-    <button class="nav-btn nav-next" id="nextBtn" onclick="navigate(1)">Next &rarr;</button>
+    <button class="nav-btn nav-prev" onclick="navigate(-1)">← 上一条</button>
+    <button class="nav-btn nav-next" id="nextBtn" onclick="navigate(1)">下一条 →</button>
   </div>
 </div>
 
 <!-- ════════ Done ════════ -->
 <div id="donepage">
   <div class="done-card">
-    <h2 id="doneTitle">&#9203; Submitting...</h2>
-    <p id="doneMsg">Please wait while your results are uploaded to the server.</p>
-    <button onclick="downloadResults()" style="margin-top:16px;">Download backup (JSON)</button>
+    <h2 id="doneTitle">⏳ 正在提交...</h2>
+    <p id="doneMsg">请稍候，正在将结果上传至服务器。</p>
+    <button onclick="downloadResults()" style="margin-top:16px;">下载结果备份 (JSON)</button>
     <p style="margin-top:16px; font-size:0.85em; color:#888;">
-      <span id="doneCount"></span> samples rated in total.</p>
+      共评测 <span id="doneCount"></span> 条语音</p>
   </div>
 </div>
 
@@ -186,7 +186,7 @@ const SYSTEMS = [
 
 // Emotions
 const EMOTIONS = ["angry", "happy", "sad"];
-const EMO_LABEL = { angry: "Angry", happy: "Happy", sad: "Sad" };
+const EMO_CN = { angry: "愤怒", happy: "高兴", sad: "悲伤" };
 
 // Sample IDs (filenames without extension, shared across systems)
 // Each emotion has its own list. Adjust to match your actual files.
@@ -280,14 +280,14 @@ function showTrial(idx) {
   // Progress
   const answered = Object.keys(ratings).length;
   document.getElementById("progressText").textContent =
-    `${idx + 1} / ${total} (${answered} completed)`;
+    `第 ${idx + 1} / ${total} 条（已完成 ${answered} 条）`;
   document.getElementById("progressFill").style.width =
     `${(answered / total) * 100}%`;
   document.getElementById("sampleId").textContent = `#${idx + 1}`;
 
   // Emotion tag
   const tag = document.getElementById("emotionTag");
-  tag.textContent = `Target emotion: ${EMO_LABEL[trial.emotion]}`;
+  tag.textContent = `目标情绪：${EMO_CN[trial.emotion]}`;
   tag.className = `emotion-tag emotion-${trial.emotion}`;
 
   // Audio
@@ -324,7 +324,7 @@ function showTrial(idx) {
 
   // Update next button text
   const nextBtn = document.getElementById("nextBtn");
-  nextBtn.textContent = idx === total - 1 ? "Submit ✓" : "Next →";
+  nextBtn.textContent = idx === total - 1 ? "提交评测 ✓" : "下一条 →";
 
   // Scroll to top
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -390,7 +390,7 @@ function loadProgress() {
 
 function startEval() {
   evaluatorId = document.getElementById("evalId").value.trim();
-  if (!evaluatorId) { alert("Please enter your evaluator ID"); return; }
+  if (!evaluatorId) { alert("请输入评测者 ID"); return; }
 
   trialOrder = buildTrialOrder();
   const resumed = loadProgress();
@@ -465,10 +465,10 @@ async function finishEval() {
 
   const payload = buildResultsPayload();
   const ok = await submitToGitHub(payload);
-  document.getElementById("doneTitle").textContent = ok ? "✅ Evaluation complete!" : "⚠️ Auto-submit failed";
+  document.getElementById("doneTitle").textContent = ok ? "✅ 评测完成！" : "⚠️ 自动提交失败";
   document.getElementById("doneMsg").textContent = ok
-    ? "Your results have been submitted. Thank you for participating!"
-    : "Please download the JSON file and send it to the experiment organizer.";
+    ? "结果已自动提交，感谢参与！"
+    : "请下载 JSON 文件并发送给实验负责人。";
 }
 
 function downloadResults() {
